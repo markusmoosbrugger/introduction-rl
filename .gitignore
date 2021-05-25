@@ -1,0 +1,10 @@
+__pycache__/
+
+# Virtual environment
+venv-rl-introduction/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Jetbrains IDEA
+.idea
