@@ -35,6 +35,8 @@ class GridEnv(Env):
         self.height = 8
         self.width = 8
         self.pos = None
+        # used for rendering
+        self.history_positions = list()
 
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Tuple(
@@ -84,6 +86,9 @@ class GridEnv(Env):
         self.pos = max(0, self.pos[0]), max(0, self.pos[1])
         self.pos = min(self.pos[0], self.width - 1), min(self.pos[1], self.height - 1)
 
+        # add new position to history
+        self.history_positions.append(self.pos)
+
         if self.pos == self.end_pos:
             # goal reached, return positive reward
             return self.pos, 100, True, {}
@@ -96,11 +101,13 @@ class GridEnv(Env):
         return self.pos, -1, False, {}
 
     def reset(self):
-        """ Resets the starting position and returns an initial observation.
+        """ Resets the starting position / history positions and returns an initial observation.
 
         :return: the initial position
         """
         self.pos = self.start_pos
+        self.history_positions = list()
+        self.history_positions.append(self.start_pos)
         return self.pos
 
     def render(self, mode='console'):
@@ -108,33 +115,69 @@ class GridEnv(Env):
         Renders the environment.
         """
 
-        if mode != 'console':
+        if mode == 'console':
+            print("|\t" + "___\t" * self.width + "|")
+            for i in reversed(range(self.height)):
+                print("|\t", end="")
+                for j in range(self.width):
+                    printed = False
+                    if self.pos == (j, i):
+                        print("x", end="")
+                        printed = True
+                    if (j, i) == self.start_pos:
+                        print("A", end="")
+                        printed = True
+                    if (j, i) == self.end_pos:
+                        print("B", end="")
+                        printed = True
+                    if (j, i) in self.bomb_positions:
+                        print("!!", end="")
+                        printed = True
+
+                    if not printed:
+                        print(".", end="")
+
+                    print("\t", end="")
+
+                print("|")
+            print("|\t" + "___\t" * self.width + "|")
+        elif mode == "image":
+            import matplotlib.pyplot as plt
+            from rendering import ImageRenderer
+
+            renderer = ImageRenderer(self.width, self.height)
+            renderer.plot_grid()
+
+            # plot bombs
+            for x, y in self.bomb_positions:
+                renderer.plot_rect((x, y), "r")
+
+            # plot target
+            renderer.plot_rect((self.end_pos[0], self.end_pos[1]), "g")
+
+            # plot position
+            renderer.plot_rect((self.pos[0], self.pos[1]), "black")
+
+            for i in range(1, len(self.history_positions)):
+                old_pos = self.history_positions[i - 1]
+                new_pos = self.history_positions[i]
+                diff = (new_pos[0] - old_pos[0], new_pos[1] - old_pos[1])
+
+                if diff[0] > 0:
+                    renderer.plot_right(old_pos)
+
+                if diff[0] < 0:
+                    renderer.plot_left(old_pos)
+
+                if diff[1] > 0:
+                    renderer.plot_up(old_pos)
+
+                if diff[1] < 0:
+                    renderer.plot_down(old_pos)
+
+            plt.axis('scaled')
+        else:
             raise NotImplementedError()
-        print("|\t" + "___\t" * self.width + "|")
-        for i in reversed(range(self.height)):
-            print("|\t", end="")
-            for j in range(self.width):
-                printed = False
-                if self.pos == (j, i):
-                    print("x", end="")
-                    printed = True
-                if (j, i) == self.start_pos:
-                    print("A", end="")
-                    printed = True
-                if (j, i) == self.end_pos:
-                    print("B", end="")
-                    printed = True
-                if (j, i) in self.bomb_positions:
-                    print("!!", end="")
-                    printed = True
-
-                if not printed:
-                    print(".", end="")
-
-                print("\t", end="")
-
-            print("|")
-        print("|\t" + "___\t" * self.width + "|")
 
     def create_bomb_positions(self, num_bombs=5):
         """
