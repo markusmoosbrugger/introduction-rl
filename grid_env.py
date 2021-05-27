@@ -26,10 +26,10 @@ class GridEnv(Env):
 
     """
 
-    metadata = {'render.modes': ['console']}
+    metadata = {'render.modes': ['console', 'image']}
     reward_range = (int(-100), int(100))
 
-    def __init__(self, bomb_positions=None):
+    def __init__(self, num_bombs = 5, bomb_positions=None):
         super(GridEnv, self).__init__()
 
         self.height = 8
@@ -40,7 +40,7 @@ class GridEnv(Env):
 
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Tuple(
-            (spaces.Discrete(self.height), spaces.Discrete(self.width)))
+            (spaces.Discrete(self.width), spaces.Discrete(self.height)))
 
         self.moves = {0: (0, -1),   # move down
                       1: (1, 0),    # move right
@@ -56,7 +56,7 @@ class GridEnv(Env):
         if bomb_positions:
             self.bomb_positions = bomb_positions
         else:
-            self.bomb_positions = self.create_bomb_positions()
+            self.bomb_positions = self.create_bomb_positions(num_bombs)
 
         self.reset()
 
@@ -108,6 +108,7 @@ class GridEnv(Env):
         self.pos = self.start_pos
         self.history_positions = list()
         self.history_positions.append(self.start_pos)
+        
         return self.pos
 
     def render(self, mode='console'):
@@ -181,16 +182,16 @@ class GridEnv(Env):
 
     def create_bomb_positions(self, num_bombs=5):
         """
-        Sets a random seed and creates the bombs at random positions.
+        Sets a seed and creates the bombs at random positions.
 
         :param num_bombs: the number of bombs to be created
         :return: the positions of the created bombs
         """
         bomb_positions = []
-        # set random seed to facilitate reproducibility
+        # set fixed seed to facilitate reproducibility
         random.seed(100)
         for _ in range(num_bombs):
-            x = random.randrange(self.height)
+            x = random.randrange(self.width)
             y = random.randrange(self.height)
             bomb_positions.append((x, y))
 
