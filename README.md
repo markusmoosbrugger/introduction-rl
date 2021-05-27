@@ -118,7 +118,7 @@ as on-policy and Q-Learning off-policy?
 
 5. Suppose &gamma; = 0.7 and the following sequence of rewards is received: R<sub>1</sub>=-1, 
 R<sub>2</sub>=3, R<sub>3</sub>=5 and R<sub>4</sub>=1, with T=4. What are G<sub>0</sub>, G<sub>1</sub>,
-..., G<sub>4</sub>?
+..., G<sub>4</sub> (Hint: Work backwards.)?
 
 
 ### Expected submission format
